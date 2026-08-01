@@ -4,7 +4,7 @@ A polished satire app that turns tiny workplace mistakes into wildly disproporti
 
 The generator runs entirely in the browser. It requires no account, backend, API key, or paid AI service.
 
-**Live site:** <https://mptower.github.io/corporate-apology-generator/>
+**Live site:** <https://apology.polzinit.com>
 
 ## Stack
 
