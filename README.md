@@ -4,6 +4,8 @@ A polished satire app that turns tiny workplace mistakes into wildly disproporti
 
 The generator runs entirely in the browser. It requires no account, backend, API key, or paid AI service.
 
+**Live site:** <https://mptower.github.io/corporate-apology-generator/>
+
 ## Stack
 
 - React 19 and TypeScript
@@ -34,6 +36,8 @@ To preview the production build:
 ```bash
 npm run preview
 ```
+
+Every push to `main` is tested, built, and deployed to GitHub Pages by the included workflow.
 
 ## How it works
 
