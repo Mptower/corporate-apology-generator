@@ -2,7 +2,7 @@ import { generateApology, type Apology } from '../src/lib/generator'
 
 const MODEL = '@cf/meta/llama-3.1-8b-instruct-fast'
 const MAX_MISTAKE_LENGTH = 180
-const MAX_DAILY_GENERATIONS = 50
+const MAX_DAILY_GENERATIONS = 200
 
 const archetypes = [
   'solemn-address',

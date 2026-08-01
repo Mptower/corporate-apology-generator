@@ -4,7 +4,7 @@ A polished satire app that turns tiny workplace mistakes into wildly disproporti
 
 The deployed app uses Cloudflare Workers AI when available and automatically falls back to its full local generator when AI is unavailable or the free daily allocation is exhausted.
 
-AI usage is hard-capped at 50 generations per UTC day and five generations per client per minute. The daily cap is intentionally set far below Cloudflare's free 10,000-neuron allocation; the Worker makes one bounded inference attempt and never retries against a paid model or provider.
+AI usage is hard-capped at 200 generations per UTC day and five generations per client per minute. The 900-token output ceiling keeps that daily maximum around 7,000 neurons, leaving a safety margin below Cloudflare's free 10,000-neuron allocation. The Worker makes one bounded inference attempt and never retries against a paid model or provider.
 
 **Live site:** <https://apology.polzinit.com>
 

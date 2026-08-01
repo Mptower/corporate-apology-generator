@@ -40,7 +40,7 @@ function createEnv(aiResult: unknown): WorkerEnv {
 }
 
 describe('Cloudflare Worker', () => {
-  it('hard-stops the global AI quota after 50 daily attempts', async () => {
+  it('hard-stops the global AI quota after 200 daily attempts', async () => {
     const values = new Map<string, unknown>()
     const quota = new DailyAiQuota({
       storage: {
@@ -54,7 +54,7 @@ describe('Cloudflare Worker', () => {
       },
     })
 
-    for (let attempt = 0; attempt < 50; attempt += 1) {
+    for (let attempt = 0; attempt < 200; attempt += 1) {
       const response = await quota.fetch(
         new Request('https://quota.internal/check', { method: 'POST' }),
       )
