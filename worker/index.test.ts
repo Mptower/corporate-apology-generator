@@ -134,6 +134,37 @@ describe('Cloudflare Worker', () => {
     errorLog.mockRestore()
   })
 
+  it('accepts varied but equivalent corporate-apology language', async () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0)
+    const varied = {
+      ...validApology,
+      paragraphs: [
+        'The underlying incident will be supplied by the trusted local blueprint at runtime.',
+        'I take full ownership of this failure and accept the blame without qualification.',
+        'Every partner and stakeholder deserved more care than my actions demonstrated.',
+        'After serious contemplation and soul-searching, I understand what leadership requires.',
+        'An independent corrective council will review every control and publish its findings.',
+        'I am departing this role immediately so a steadier leader can restore confidence.',
+        'I offer my sincerest apology for this satirical crisis and the trust it disturbed.',
+      ],
+    }
+    const env = createEnv({ response: varied })
+    const response = await worker.fetch(
+      new Request('https://apology.polzinit.com/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: 'https://apology.polzinit.com',
+        },
+        body: JSON.stringify({ mistake: 'I forgot to attach the file' }),
+      }),
+      env,
+    )
+
+    expect(response.status).toBe(200)
+    random.mockRestore()
+  })
+
   it('rate limits generation by client address', async () => {
     const env = createEnv({ response: JSON.stringify(validApology) })
     vi.mocked(env.AI_RATE_LIMITER.limit).mockResolvedValueOnce({ success: false })

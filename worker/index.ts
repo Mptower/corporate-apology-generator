@@ -228,7 +228,7 @@ function validateApology(
     !Array.isArray(value.paragraphs) ||
     value.paragraphs.length < 5 ||
     value.paragraphs.length > 9 ||
-    !value.paragraphs.every((paragraph) => hasText(paragraph, 1200) && paragraph.length >= 35) ||
+    !value.paragraphs.every((paragraph) => hasText(paragraph, 1200) && paragraph.length >= 20) ||
     !hasText(value.signoff, 180)
   ) {
     return null
@@ -242,12 +242,16 @@ function validateApology(
   const normalizedOutput = fullText.toLocaleLowerCase()
   const hasRequiredBeats =
     normalizedOutput.includes(normalizedIncident) &&
-    /accountab|responsib|I own|my failure|my watch/i.test(fullText) &&
+    /accountab|responsib|ownership|own (?:this|the|my)|my failure|my watch|accept (?:the|full) blame/i.test(
+      fullText,
+    ) &&
     /stakeholder|employees|customers|partners/i.test(fullText) &&
-    /reflect|listen|introspect/i.test(fullText) &&
-    /step down|step aside|resign|transition|leave (?:my|the) role/i.test(fullText) &&
-    /\bsorry\b/i.test(fullText) &&
-    /\bfictional\b/i.test(fullText)
+    /reflect|listen|introspect|contemplat|soul-search|self-examin|reckon/i.test(fullText) &&
+    /step down|step aside|stepping away|resign|transition|leave (?:my|the) role|depart/i.test(
+      fullText,
+    ) &&
+    /\bsorry\b|apolog/i.test(fullText) &&
+    /\bfictional\b|satir/i.test(fullText)
 
   if (!hasRequiredBeats || fullText.length > 9000) {
     return null
