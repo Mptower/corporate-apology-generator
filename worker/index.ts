@@ -415,6 +415,11 @@ async function handleApiRequest(request: Request, env: WorkerEnv): Promise<Respo
 export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
     const url = new URL(request.url)
+    if (url.protocol !== 'https:') {
+      url.protocol = 'https:'
+      return Response.redirect(url.toString(), 308)
+    }
+
     if (url.pathname === '/api/generate') {
       return handleApiRequest(request, env)
     }

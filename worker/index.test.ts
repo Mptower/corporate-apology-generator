@@ -258,4 +258,18 @@ describe('Cloudflare Worker', () => {
     expect(await response.text()).toBe('asset')
     expect(env.ASSETS.fetch).toHaveBeenCalledOnce()
   })
+
+  it('redirects plain HTTP traffic to HTTPS at the edge', async () => {
+    const env = createEnv({ response: JSON.stringify(validApology) })
+    const response = await worker.fetch(
+      new Request('http://apology.polzinit.com/?incident=test'),
+      env,
+    )
+
+    expect(response.status).toBe(308)
+    expect(response.headers.get('Location')).toBe(
+      'https://apology.polzinit.com/?incident=test',
+    )
+    expect(env.ASSETS.fetch).not.toHaveBeenCalled()
+  })
 })
