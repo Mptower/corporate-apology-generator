@@ -1,10 +1,23 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { generateRemoteApology } from './lib/ai'
+import { generateApology } from './lib/generator'
 import App from './App'
+
+vi.mock('./lib/ai', () => ({
+  generateRemoteApology: vi.fn(),
+}))
+
+async function finishGeneration() {
+  await act(async () => {
+    await vi.runAllTimersAsync()
+  })
+}
 
 describe('App', () => {
   beforeEach(() => {
     vi.useFakeTimers()
+    vi.mocked(generateRemoteApology).mockRejectedValue(new Error('Worker unavailable'))
   })
 
   afterEach(() => {
@@ -29,9 +42,7 @@ describe('App', () => {
 
     expect(screen.getByText(/Aligning stakeholders/i)).toBeInTheDocument()
 
-    act(() => {
-      vi.advanceTimersByTime(700)
-    })
+    await finishGeneration()
 
     const statement = within(screen.getByRole('article'))
     expect(statement.getByRole('heading', { level: 2 })).toBeInTheDocument()
@@ -39,24 +50,20 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /copy/i })).toBeEnabled()
   })
 
-  it('regenerates with a perceptibly different structure', () => {
+  it('regenerates with a perceptibly different structure', async () => {
     render(<App />)
 
     fireEvent.change(screen.getByLabelText(/what did you do/i), {
       target: { value: 'I forgot the meeting agenda' },
     })
     fireEvent.click(screen.getByRole('button', { name: /generate public statement/i }))
-    act(() => {
-      vi.advanceTimersByTime(700)
-    })
+    await finishGeneration()
     const firstTitle = within(screen.getByRole('article')).getByRole('heading', {
       level: 2,
     }).textContent
 
     fireEvent.click(screen.getByRole('button', { name: /regenerate/i }))
-    act(() => {
-      vi.advanceTimersByTime(700)
-    })
+    await finishGeneration()
     const nextTitle = within(screen.getByRole('article')).getByRole('heading', {
       level: 2,
     }).textContent
@@ -77,14 +84,40 @@ describe('App', () => {
       target: { value: 'I muted the wrong person' },
     })
     fireEvent.click(screen.getByRole('button', { name: /generate public statement/i }))
-    act(() => {
-      vi.advanceTimersByTime(700)
-    })
+    await finishGeneration()
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /copy/i }))
     })
 
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining('I muted the wrong person'))
     expect(screen.getByRole('status')).toHaveTextContent('Statement copied')
+  })
+
+  it('renders a validated AI response when the Worker succeeds', async () => {
+    const aiApology = generateApology('I misplaced the agenda', () => 0)
+    vi.mocked(generateRemoteApology).mockResolvedValueOnce(aiApology)
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText(/what did you do/i), {
+      target: { value: 'I misplaced the agenda' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /generate public statement/i }))
+    await finishGeneration()
+
+    expect(within(screen.getByRole('article')).getByText(/I misplaced the agenda/)).toBeInTheDocument()
+    expect(screen.getByText(/AI drafted/i)).toBeInTheDocument()
+  })
+
+  it('locks the incident briefing while AI generation is pending', () => {
+    vi.mocked(generateRemoteApology).mockReturnValueOnce(new Promise(() => undefined))
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText(/what did you do/i), {
+      target: { value: 'I sent the draft too early' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /generate public statement/i }))
+
+    expect(screen.getByLabelText(/what did you do/i)).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'I replied all' })).toBeDisabled()
   })
 })

@@ -1,0 +1,48 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "corporate-apology-generator",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-07-31",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+  "ai": {
+    "binding": "AI"
+  },
+  "ratelimits": [
+    {
+      "name": "AI_RATE_LIMITER",
+      "namespace_id": "1120260731",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "DAILY_AI_QUOTA",
+        "class_name": "DailyAiQuota"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["DailyAiQuota"]
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "apology.polzinit.com/*",
+      "zone_name": "polzinit.com"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

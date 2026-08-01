@@ -553,7 +553,7 @@ export function apologyToText(apology: Apology): string {
 export function generateApology(
   input: string,
   random: RandomSource = Math.random,
-  previous?: Apology,
+  previous?: Pick<Apology, 'archetype'>,
 ): Apology {
   const mistake = normalizeMistake(input)
   const picker = new Picker(random)

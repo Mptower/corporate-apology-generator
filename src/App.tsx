@@ -5,6 +5,7 @@ import {
   MAX_MISTAKE_LENGTH,
   type Apology,
 } from './lib/generator'
+import { generateRemoteApology } from './lib/ai'
 
 const examples = [
   'I forgot to attach the file',
@@ -14,6 +15,7 @@ const examples = [
 ]
 
 type CopyState = 'idle' | 'copied' | 'error'
+type GenerationSource = 'ai' | 'local'
 
 function CopyIcon() {
   return (
@@ -39,14 +41,17 @@ export default function App() {
   const [error, setError] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [copyState, setCopyState] = useState<CopyState>('idle')
+  const [generationSource, setGenerationSource] = useState<GenerationSource | null>(null)
   const outputHeadingRef = useRef<HTMLHeadingElement>(null)
   const timerRef = useRef<number | null>(null)
+  const requestIdRef = useRef(0)
 
   useEffect(
     () => () => {
       if (timerRef.current !== null) {
         window.clearTimeout(timerRef.current)
       }
+      requestIdRef.current += 1
     },
     [],
   )
@@ -57,24 +62,44 @@ export default function App() {
     }
   }, [apology])
 
-  const runGenerator = () => {
+  const runGenerator = async () => {
     setError('')
     setCopyState('idle')
 
-    let nextApology: Apology
+    let localFallback: Apology
     try {
-      nextApology = generateApology(mistake, Math.random, apology ?? undefined)
+      localFallback = generateApology(mistake, Math.random, apology ?? undefined)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'The crisis desk could not process that.')
       return
     }
 
+    const requestId = requestIdRef.current + 1
+    requestIdRef.current = requestId
+    const startedAt = Date.now()
     setIsGenerating(true)
+    let nextApology: Apology
+    let source: GenerationSource
+
+    try {
+      nextApology = await generateRemoteApology(mistake, apology ?? undefined)
+      source = 'ai'
+    } catch {
+      nextApology = localFallback
+      source = 'local'
+    }
+
+    if (requestId !== requestIdRef.current) {
+      return
+    }
+
+    const remainingDelay = Math.max(0, 700 - (Date.now() - startedAt))
     timerRef.current = window.setTimeout(() => {
       setApology(nextApology)
+      setGenerationSource(source)
       setIsGenerating(false)
       timerRef.current = null
-    }, 700)
+    }, remainingDelay)
   }
 
   const handleSubmit = (event: FormEvent) => {
@@ -150,6 +175,7 @@ export default function App() {
                   placeholder="e.g. I forgot to attach the file"
                   maxLength={MAX_MISTAKE_LENGTH}
                   rows={5}
+                  disabled={isGenerating}
                   aria-describedby={error ? 'mistake-error character-count' : 'input-hint character-count'}
                   aria-invalid={Boolean(error)}
                 />
@@ -175,6 +201,7 @@ export default function App() {
                       type="button"
                       className="example-chip"
                       onClick={() => handleExample(example)}
+                      disabled={isGenerating}
                       key={example}
                     >
                       {example}
@@ -220,7 +247,9 @@ export default function App() {
                 </div>
               ) : apology ? (
                 <article className="statement">
-                  <p className="statement-kicker">{apology.company} / Official communication</p>
+                  <p className="statement-kicker">
+                    {apology.company} / {generationSource === 'ai' ? 'AI drafted' : 'Local fallback'}
+                  </p>
                   <h2 ref={outputHeadingRef} tabIndex={-1}>
                     {apology.title}
                   </h2>
