@@ -165,6 +165,43 @@ describe('Cloudflare Worker', () => {
     random.mockRestore()
   })
 
+  it('injects any required narrative beats omitted by the model', async () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0)
+    const sparse = {
+      ...validApology,
+      paragraphs: [
+        'The trusted blueprint supplies the exact incident in this opening paragraph.',
+        'The board met early this morning to discuss a path through recent events.',
+        'Several internal processes will be revised after a careful operational review.',
+        'The organization plans to publish a detailed report about lessons learned.',
+        'Further updates will be shared when the communications team approves them.',
+      ],
+    }
+    const env = createEnv({ response: sparse })
+    const response = await worker.fetch(
+      new Request('https://apology.polzinit.com/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: 'https://apology.polzinit.com',
+        },
+        body: JSON.stringify({ mistake: 'I forgot to attach the file' }),
+      }),
+      env,
+    )
+    const body = (await response.json()) as { apology: typeof validApology }
+    const text = body.apology.paragraphs.join(' ')
+
+    expect(response.status).toBe(200)
+    expect(text).toContain('The accountability is mine alone.')
+    expect(text).toMatch(/stakeholder|employees|customers/i)
+    expect(text).toContain('I have reflected deeply on this failure.')
+    expect(text).toContain('I will step down from leadership immediately.')
+    expect(text).toContain('I am sorry.')
+    expect(text).toMatch(/fictional/i)
+    random.mockRestore()
+  })
+
   it('rate limits generation by client address', async () => {
     const env = createEnv({ response: JSON.stringify(validApology) })
     vi.mocked(env.AI_RATE_LIMITER.limit).mockResolvedValueOnce({ success: false })

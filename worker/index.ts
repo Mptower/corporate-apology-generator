@@ -237,23 +237,49 @@ function validateApology(
   const paragraphs = [blueprint.paragraphs[0], ...value.paragraphs.slice(1)].map((paragraph) =>
     paragraph.trim(),
   )
-  const fullText = paragraphs.join(' ')
+  const initialText = paragraphs.join(' ')
   const normalizedIncident = mistake.replace(/[.!?]+$/, '').toLocaleLowerCase()
-  const normalizedOutput = fullText.toLocaleLowerCase()
-  const hasRequiredBeats =
-    normalizedOutput.includes(normalizedIncident) &&
-    /accountab|responsib|ownership|own (?:this|the|my)|my failure|my watch|accept (?:the|full) blame/i.test(
-      fullText,
-    ) &&
-    /stakeholder|employees|customers|partners/i.test(fullText) &&
-    /reflect|listen|introspect|contemplat|soul-search|self-examin|reckon/i.test(fullText) &&
-    /step down|step aside|stepping away|resign|transition|leave (?:my|the) role|depart/i.test(
-      fullText,
-    ) &&
-    /\bsorry\b|apolog/i.test(fullText) &&
-    /\bfictional\b|satir/i.test(fullText)
+  if (!initialText.toLocaleLowerCase().includes(normalizedIncident)) {
+    return null
+  }
 
-  if (!hasRequiredBeats || fullText.length > 9000) {
+  const safeguards = [
+    {
+      pattern:
+        /accountab|responsib|ownership|own (?:this|the|my)|my failure|my watch|accept (?:the|full) blame/i,
+      sentence: 'The accountability is mine alone.',
+    },
+    {
+      pattern: /stakeholder|employees|customers|partners/i,
+      sentence: 'Our stakeholders deserved better.',
+    },
+    {
+      pattern: /reflect|listen|introspect|contemplat|soul-search|self-examin|reckon/i,
+      sentence: 'I have reflected deeply on this failure.',
+    },
+    {
+      pattern: /step down|step aside|stepping away|resign|transition|leave (?:my|the) role|depart/i,
+      sentence: 'I will step down from leadership immediately.',
+    },
+    {
+      pattern: /\bsorry\b|apolog/i,
+      sentence: 'I am sorry.',
+    },
+    {
+      pattern: /\bfictional\b|satir/i,
+      sentence: 'This crisis and every identity described here are fictional.',
+    },
+  ] as const
+  const additions = safeguards
+    .filter(({ pattern }) => !pattern.test(initialText))
+    .map(({ sentence }) => sentence)
+
+  if (additions.length > 0) {
+    const lastIndex = paragraphs.length - 1
+    paragraphs[lastIndex] = `${paragraphs[lastIndex]} ${additions.join(' ')}`
+  }
+
+  if (paragraphs.join(' ').length > 9000) {
     return null
   }
 
