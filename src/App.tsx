@@ -61,8 +61,9 @@ export default function App() {
     setError('')
     setCopyState('idle')
 
+    let nextApology: Apology
     try {
-      generateApology(mistake)
+      nextApology = generateApology(mistake, Math.random, apology ?? undefined)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'The crisis desk could not process that.')
       return
@@ -70,7 +71,7 @@ export default function App() {
 
     setIsGenerating(true)
     timerRef.current = window.setTimeout(() => {
-      setApology(generateApology(mistake))
+      setApology(nextApology)
       setIsGenerating(false)
       timerRef.current = null
     }, 700)

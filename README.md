@@ -41,8 +41,8 @@ Every push to `main` is tested, built, and deployed to GitHub Pages by the inclu
 
 ## How it works
 
-Enter a minor mistake or choose an example, then generate a statement. A local template engine combines fictional companies, executives, accountability language, stakeholder concern, reflection, governance theater, leadership transitions, and solemn closings into a coherent multi-paragraph apology.
+Enter a minor mistake or choose an example, then generate a statement. A bounded local engine composes five distinct narrative archetypes from fictional companies, executives, accountability language, stakeholder concern, reflection, governance theater, rhetorical devices, leadership transitions, and solemn closings.
 
-Use **Regenerate** for another version or **Copy** to place the complete statement on your clipboard.
+Use **Regenerate** for a structurally different version or **Copy** to place the complete statement on your clipboard.
 
 All generated companies, executives, events, and consequences are fictional. This project is satire and does not imitate any real person.

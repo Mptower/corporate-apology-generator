@@ -33,9 +33,36 @@ describe('App', () => {
       vi.advanceTimersByTime(700)
     })
 
-    expect(screen.getByRole('heading', { name: 'A Statement on Recent Events' })).toBeInTheDocument()
-    expect(within(screen.getByRole('article')).getByText(/I replied all/)).toBeInTheDocument()
+    const statement = within(screen.getByRole('article'))
+    expect(statement.getByRole('heading', { level: 2 })).toBeInTheDocument()
+    expect(statement.getByText(/I replied all/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /copy/i })).toBeEnabled()
+  })
+
+  it('regenerates with a perceptibly different structure', () => {
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText(/what did you do/i), {
+      target: { value: 'I forgot the meeting agenda' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /generate public statement/i }))
+    act(() => {
+      vi.advanceTimersByTime(700)
+    })
+    const firstTitle = within(screen.getByRole('article')).getByRole('heading', {
+      level: 2,
+    }).textContent
+
+    fireEvent.click(screen.getByRole('button', { name: /regenerate/i }))
+    act(() => {
+      vi.advanceTimersByTime(700)
+    })
+    const nextTitle = within(screen.getByRole('article')).getByRole('heading', {
+      level: 2,
+    }).textContent
+
+    expect(nextTitle).not.toBe(firstTitle)
+    expect(within(screen.getByRole('article')).getByText(/I forgot the meeting agenda/)).toBeInTheDocument()
   })
 
   it('copies the generated statement', async () => {
